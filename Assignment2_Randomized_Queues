@@ -1,0 +1,120 @@
+/*
+    a randomized queue is similar to a stack or queue,
+    except that the item removed is chosen uniformly
+    at random from items in the data structure.
+ */
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdOut;
+
+
+public class RandomizedQueue<Item> implements Iterable<Item> {
+
+    private int size = 0;           // number of elements on queue
+    private Item[] s;               // queue elements
+    private int first;              // index of first element of queue
+    private int capacity = 2;       // initial capacity of the array
+
+    //construct an empty randomized queue
+    public RandomizedQueue(){
+        s = (Item[]) new Object[capacity];
+        size = 0;
+        first = 0; }
+
+    // is the randomized queue empty?
+    public boolean isEmpty(){
+        return size == 0;
+    }
+
+    // return the number of items onn the randomized queue
+    public int size(){
+        return size;
+    }
+
+    // resize the underlying array
+    private void resize(int newSize){
+        assert newSize >= size;
+        Item[] temp = (Item[]) new Object[newSize];
+        for (int i = 0; i < size; i++){
+            temp[i] = s[(first + i) % s.length];
+        }
+        s = temp;
+        first = 0;
+        //last = size;
+    }
+
+    // add the item
+    public void enqueue(Item item){
+        if (item == null){
+            throw new java.lang.IllegalArgumentException();
+        }
+        if (size == s.length) {
+            resize(2 * s.length);
+        }
+        s[size++] = item;
+    }
+
+    // remove and return a random item
+    public Item dequeue(){
+        if (isEmpty()){
+            throw new NoSuchElementException();
+        }
+        int index = StdRandom.uniform(size);
+        Item item = s[index];
+        s[index] = s[size - 1];
+        s[size - 1] = null;
+        size--;
+
+        // shrink the size of the array if necessary
+        if (size > 0 && size == s.length / 4){
+            resize(s.length / 2);
+        }
+        return item;
+    }
+
+    //return a random item but do not remove it
+    public Item sample(){
+        if (isEmpty()){
+            throw new NoSuchElementException();
+        }
+        return s[StdRandom.uniform(size)];
+    }
+
+    // return an independent iterator over items in random order
+    public Iterator<Item> iterator(){
+        return new ArrayIterator();
+    }
+
+    private class ArrayIterator implements Iterator<Item>{
+        private int i = 0;
+        public boolean hasNext(){
+            return i < size;
+        }
+        public void remove(){
+            throw new java.lang.UnsupportedOperationException();
+        }
+        public Item next(){
+            if (!hasNext()){
+                throw new NoSuchElementException();
+            }
+            Item item = s[(i + first) % s.length];
+            i++;
+            return item;
+        }
+    }
+
+    // unit testing
+    public static void main(String[] args){
+        RandomizedQueue<String> rq = new RandomizedQueue<>();
+        String[] str = {"a", "b", "c", "d"};
+        for (String s: str)
+            rq.enqueue(s);
+        rq.size();
+        StdOut.println(rq.dequeue());
+        StdOut.println(rq.sample());
+        StdOut.println(rq.size());
+    }
+}
